@@ -1,4 +1,4 @@
-# CIP-0121
+# CIP-01XY
 
 <pre>
 Number: CIP-01XY
@@ -19,7 +19,7 @@ License: CC0-1.0
 ## Abstract
 
 Validator access to the Global Synchronizer - i.e., access to Scan and sequencer APIs - is currently restricted by explicit IP whitelisting rules: connecting new validators to the network requires requesting access in a process coordinated by the Canton Foundation.
-Additionally, an established supervalidator (SV) must explicitly "sponsor" each new validator onboarding via manually issuing an onboarding secret.
+Additionally, an established Super Validator (SV) must explicitly "sponsor" each new validator onboarding via manually issuing an onboarding secret.
 
 This CIP proposes the removal of IP whitelisting requirements as well as changes to the validator onboarding process so that new validators can join the network in a self-service way.
 
@@ -35,14 +35,14 @@ This CIP furthermore makes "dropping the whitelist" conditional on the enforceme
 ### Overview and Scope
 
 This CIP focuses on removing the whitelist requirement for the validator-facing public endpoints of Scan and the sequencers.
-No changes are made to the access requirements for endpoints that are only used by other SVs as well as any access requirements enforced by individual (super-)validators for their operators and users.
+No changes are made to the access requirements for endpoints that are only used by other SVs as well as any access requirements enforced by individual SVs and validators for their operators and users.
 
 In order to safely remove the IP whitelisting requirement for the public endpoints of Scan and the sequencers, the following prerequisites must be met:
 
 1. Scan and sequencer APIs are audited and hardened. (see *API Security*)
 2. Traffic-based onboarding is in place. (see *Traffic-based Validator Onboarding*).
 3. Rate limiting and DoS protection is enforced. (see *Rate Limiting and DoS Protection*).
-4. For MainNet and TestNet: Testing period on DevNet has passed (see *Rollout Plan*)
+4. For MainNet and TestNet: Testing period on DevNet has passed (see *Rollout Plan*).
 
 ### API Security
 
@@ -86,7 +86,7 @@ In order for traffic-based onboarding to offer effective protection, each networ
 Once the network switches over (step 3), existing validators whose total past traffic purchases are below the minimum traffic requirement lose access to the synchronizer.
 Access can be restored by purchasing sufficient traffic to meet the traffic requirement (defined on ledger and made public via Scan).
 
-In the event of unexpected issues with the new onboarding mode, rolling back the network back to `UnrestrictedOpen` requires manual coordination among Super Validator operators. The SVs must coordinate to manually switch back to `UnrestrictedOpen` in the `DynamicSynchronizerParameters`.
+In the event of unexpected issues with the new onboarding mode, rolling back the network back to `UnrestrictedOpen` requires manual coordination among SV operators. The SVs must coordinate to manually switch back to `UnrestrictedOpen` in the `DynamicSynchronizerParameters`.
 
 #### Easier Traffic Purchases
 
@@ -95,7 +95,7 @@ Any existing party that holds sufficient Canton Coin may perform this purchase o
 For example, dedicated services may emerge that offer traffic purchases in exchange for fiat currency payments.
 
 To enable regular wallet users to purchase traffic for new validators, traffic purchases will be supported through token standard v1 compatibility mode:
-SV automation will be extended so that a transfer to `cip-<xxx>_traffic-purchase::1220000000000000000000000000000000000000000000000000000000000000abcd` with an appropriately formatted memo tag referencing a participant ID will result in a traffic purchase on behalf of the referenced participant ID.
+SV automation will be extended so that a transfer to a special address of the form `cip-<xxx>_traffic-purchase::1220...abcd` with an appropriately formatted memo tag referencing a participant ID will result in a traffic purchase on behalf of the referenced participant ID.
 
 To make it easier to deploy validators on DevNet, SVs will expose a new DevNet-only endpoint: `/v0/devnet/onboard/validator/purchase-traffic`.
 This endpoint uses an SV's own (DevNet) coin holdings to generate `MemberTraffic` for joining validators.
@@ -125,7 +125,7 @@ The sequencer must provide:
 - Global and per-IP request-rate limits on the critical endpoint subset, equivalent to the HTTP limits above.
 
 The limit values for Scan and the sequencer must be maintained in a shared, version-controlled configuration repository and applied by all SVs, so that limits are identical across SVs and tunable network-wide without needing a new release.
-*All* SVs *must* adopt the agreed upon rate limiting configuration in a timely fashion and *may not* override rate limits with individual settings or exceptions (to ensure fairness and consisted quality of service).
+*All* SVs *must* adopt the agreed upon rate limiting configuration in a timely fashion and *may not* override rate limits with individual settings or exceptions (to ensure fairness and consistent quality of service).
 
 #### Infrastructure Requirements
 
@@ -141,7 +141,7 @@ The specific requirements will be documented in depth in the public documentatio
 
 Like for the application-level rate limiting, universal aspects of the rate limiting configuration will be maintained in a shared, version-controlled configuration repository available to all SVs.
 SV operators must ensure that their individual deployment systems can parse and apply the shared configuration.
-*All* SVs *must* adopt the agreed upon rate limiting configuration in a timely fashion and *may not* override rate limits with individual settings or exceptions (to ensure fairness and consisted quality of service).
+*All* SVs *must* adopt the agreed upon rate limiting configuration in a timely fashion and *may not* override rate limits with individual settings or exceptions (to ensure fairness and consistent quality of service).
 
 #### Verification
 
@@ -151,14 +151,14 @@ A sanity-check tool will be provided to SVs to verify that the preconditions for
 - throttled requests receive the expected response;
 - client IPs are correctly identified and limited, even when forwarded through a trusted proxy;
 
-SVs are encouraged to test both their and their peers's setups prior to the removal of the whitelisting requirement.
+SVs are encouraged to test both their and their peers' setups prior to the removal of the whitelisting requirement.
 
 ### Rollout Plan
 
 The whitelisting requirements can be dropped on a network once all prerequisites above are fulfilled for that network,
 most notably once the network has transitioned to traffic-based onboarding and all SVs have made the necessary adjustments to their deployments to support effective rate limiting.
 
-Additionally, the whitelist requirement should only be dropped on TestNet and MainNet after a testing period of DevNet of at least 4 weeks.
+Additionally, the whitelist requirement should only be dropped on TestNet and MainNet after a testing period on DevNet of at least 4 weeks.
 More specifically, the opening schedule should be no more condensed than:
 
 - Week 0: Whitelist requirement dropped on DevNet
