@@ -113,3 +113,12 @@ Global Synchronizer CIPs
 | [cip-0117](/cip-0117/cip-0117.md) |  | Logical Synchronizers| Wayne Collier, Moritz Kiefer, Rafael Guglielmetti | Standards Track | Approved |
 | [cip-0118](/cip-0118/cip-0118.md) |  | Add Franklin Templeton as a Super Validator (max weight 5) | Sandy Kaul | Governance | Approved |
 | [cip-0119](/cip-0119/cip-0119.md) |  | Free Canton Coin Transfer-Preapproval Base Duration | Moritz Kiefer, Simon Meier | Tokenomics | Approved |
+| [cip-0120](/cip-0120/cip-0120.md) |  | Traffic-Based Validator Rewards and Confirming Validator Incentives | David Richards, Simon Meier, Bernhard Elsner | Tokenomics | Proposed |
+| [cip-0121](/cip-0121/cip-0121.md) |  | Shinhan Asset Management Super Validator Weight 10 |Eric Saraniecki | Governance | Approved |
+| [cip-0122](/cip-0122/cip-0122.md) |  | Add TreasurySpring Management (Jersey) Limited as a Super Validator (max weight 4) | Matthew Longhurst | Governance | Approved |
+| [cip-0123](/cip-0123/cip-0123.md) |  | Add a16z crypto as a Super Validator (Weight up to 10.0) | Eric Saraniecki | Governance | Approved |
+| [cip-0124](/cip-0124/cip-0124.md) |  | London Stock Exchange Group (LSEG) Super Validator Participation | Bud Novin | Governance | Proposed |
+| [cip-0125](/cip-0125/cip-0125.md) |  | Add Paxos as a Super Validator (Weight 8.0) | Eric Saraniecki | Governance | Proposed |
+| [cip-0126](/cip-0126/cip-0126.md) |  | Marex Super Validator Weight 10 | Christiana Chong | Governance | Proposed |
+
+
