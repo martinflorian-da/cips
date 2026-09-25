@@ -24,7 +24,7 @@ Additionally, an established Super Validator (SV) must explicitly "sponsor" each
 This CIP proposes the removal of IP whitelisting requirements as well as changes to the validator onboarding process so that new validators can join the network in a self-service way.
 
 The whitelisting requirement cannot simply be dropped: it currently protects the network from malicious actors and excessive load.
-For example, the whitelisting requirement makes it straightforward to exclude and block nodes that have been identified as problematic.
+For example, the whitelisting requirement makes it straightforward to exclude and block nodes that have been identified as malicious.
 
 This CIP proposes a new onboarding flow that grants synchronizer access automatically once a minimum amount of traffic has been purchased.
 This makes it costly to connect an arbitrary number of validators.
@@ -61,16 +61,18 @@ Instead of secrets, new validator onboarding is now driven by traffic purchases.
 
 - An existing party on the network purchases traffic for that new participant ID (using Canton Coin; see also *Easier Traffic Purchases* below.)
 
-- This traffic purchase automatically triggers the whitelisting process, allowing the validator to connect to the Global Synchronizer.
+- This traffic purchase automatically triggers the onboarding process, allowing the validator to connect to the Global Synchronizer.
 
 Concretely, when the `MemberTraffic` contract is created with sufficient traffic (as publicly defined on ledger), SV automation observes this contract and automatically submits a `ParticipantSynchronizerPermission` topology transaction for the validator's participant ID. Once confirmed by a majority of SVs, the validator's connection is accepted.
 
-In the event that SVs detect network abuse by a validator, SVs can collectively decide to blacklist the offending validator.
+The minimum amount of traffic required for this process will be configurable via an on-ledger governance vote.
+
+In the event that SVs detect network abuse by a validator, SVs can collectively decide to blacklist the offending validator via a governance vote.
 SVs use a new `ValidatorBlacklist` contract to vote on revoking a validator's synchronizer access.
 The `ValidatorBlacklist` contract supports two modes of revocation:
 
 - Temporary: Suspend the validator's access until a specific time by setting the `loginAfter` parameter on the `ParticipantSynchronizerPermission`.
-- Permanent: Fully revoke the `ParticipantSynchronizerPermission` topology state.
+- Unlimited: Fully revoke the `ParticipantSynchronizerPermission` topology state.
 
 Even in the latter case, a blacklisted validator can still be whitelisted again at a later time:
 SVs may vote to issue a new `ParticipantSynchronizerPermission`.
