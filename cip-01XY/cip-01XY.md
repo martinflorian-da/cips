@@ -85,7 +85,7 @@ In order for traffic-based onboarding to offer effective protection, each networ
 2. Topology submission: SV operators set the `submitSynchronizerPermission: true` feature flag on the SV application. This triggers a one-time decentralized automation to submit `ParticipantSynchronizerPermission` topology transactions for all existing validators that hold a valid `MemberTraffic` contract with sufficient traffic.
 3. Network switchover: Once the topology submission is complete, SV operators set the `requireRestrictedOpen: true` feature flag. This automatically converts the network to `RestrictedOpen` mode.
 
-Once the network switches over (step 3), existing validators whose total past traffic purchases are below the minimum traffic requirement lose access to the synchronizer.
+Once the network switches over (step 3), existing validators whose total past traffic purchases is below the minimum traffic requirement lose access to the synchronizer.
 Access can be restored by purchasing sufficient traffic to meet the traffic requirement (defined on ledger and made public via Scan).
 
 In the event of unexpected issues with the new onboarding mode, rolling back the network back to `UnrestrictedOpen` requires manual coordination among SV operators. The SVs must coordinate to manually switch back to `UnrestrictedOpen` in the `DynamicSynchronizerParameters`.
@@ -97,7 +97,7 @@ Any existing party that holds sufficient Canton Coin may perform this purchase o
 For example, dedicated services may emerge that offer traffic purchases in exchange for fiat currency payments.
 
 To enable regular wallet users to purchase traffic for new validators, traffic purchases will be supported through token standard v1 compatibility mode:
-SV automation will be extended so that a transfer to a special address of the form `cip-<xxx>_traffic-purchase::1220...abcd` with an appropriately formatted memo tag referencing a participant ID will result in a traffic purchase on behalf of the referenced participant ID.
+SV automation will be extended so that a transfer to a special address of the form `cip-<xxx>_traffic-purchase::1220...abcd` with an appropriately formatted memo tag referencing a participant ID will have the same outcome (CC is burnt, and an on-ledger record of that burn is created) as the current traffic purchase Daml choice for the referenced participant ID.
 
 To make it easier to deploy validators on DevNet, SVs will expose a new DevNet-only endpoint: `/v0/devnet/onboard/validator/purchase-traffic`.
 This endpoint uses an SV's own (DevNet) coin holdings to generate `MemberTraffic` for joining validators.
