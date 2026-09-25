@@ -1,40 +1,106 @@
 # CIP-0121
 
 <pre>
-Number: CIP-0121
+Number: CIP-01XY
 Title: Remove IP Whitelists from the Global Synchronizer
-Author(s): Nicu Reut
+Author(s):
+  Martin Florian
+  Nicu Reut
+  Pasindu Tennage
+  Moritz Kiefer
 Type: Standards Track
 Status: Draft
-Created: 2026-08-20
+Created: 2026-xx-xx 
+Approved: 2026-xx-xx 
 License: CC0-1.0
-Requires: CIP-0045
 </pre>
 
 
 ## Abstract
 
-Access to the public endpoints of the Global Synchronizer (Scan and the sequencers) is today limited by IP whitelisting rules maintained separately each Super Validator (SV) node. Every new validator, address change, or additional egress range requires a request-and-approval step, coordinated by Canton Foundation operations,
-before that validator can reach the network. This CIP proposes to remove the IP whitelist so that validators can join the network without any whitelisting requirements.
+Validator access to the Global Synchronizer - i.e., access to Scan and sequencer APIs - is currently restricted by explicit IP whitelisting rules: connecting new validators to the network requires requesting access in a process coordinated by the Canton Foundation.
+Additionally, an established supervalidator must explicitly "sponsor" each new validator onboarding via manually issuing an onboarding secret.
 
-The whitelist cannot simply be dropped: it currently provides two protections incidentally, a bound on who can consume node resources, and a bound on who can reach the synchronizer. 
-This CIP therefore makes removal conditional on two prerequisites being in place first: enforced rate limiting (at both the application and infrastructure layers) and a traffic-based onboarding gate. 
+This CIP proposes the removal of IP whitelisting requirements as well as changes to the validator onboarding process so that new validators can join the network in a self-service way.
 
+The whitelisting requirement cannot simply be dropped: it currently protects the network from malicious actors and excessive load.
+For example, the whitelisting requirement makes it straightforward to exclude and block nodes that have been identified as problematic.
+
+This CIP therefore proposes to make synchronizer access for a new validator conditional on purchasing a minimum amount of traffic.
+This makes it costly to connect an arbitrary number of validators.
+Additionally, the proposed design retains the option of revoking the access of misbehaving nodes via a majority supervalidator vote.
+This CIP furthermore makes "dropping the whitelist" conditional on the enforcement of rate limits at both the application and (supervalidator) infrastructure layers.
 
 ## Specification
 
-The focus is on removing the IP whitelisting for the public endpoints of Scan and the sequencers. 
+### Overview and Scope
 
-### Preconditions for Removal
+This CIP focuses on removing the whitelist requirement for the validator-facing public endpoints of Scan and the sequencers. 
+No changes are made to the access requirements for endpoints only used by other supervalidators as well as any access requirements enforced by individual (super-)validators for their operators and users.
 
-1. **Traffic-based onboarding is in place.** 
-   1. Synchronizer access must be secured so that Validators incur a traffic cost to onboard, and malicious nodes can be penalized by the protocol. 
-   2. "Traffic-based onboarding will be covered in a separate CIP. This CIP focuses on the remaining preconditions for whitelist removal.
-2. **Application-level rate limiting is enforced** (see *Application-Level Rate Limiting*).
-3. **Infrastructure-level rate limiting and DDoS protection are enforced** (see *Infrastructure Requirements*).
-4. **Verification has passed** (see *Verification*).
+In order to safely remove the IP whitelisting requirement for the public endpoints of Scan and the sequencers, the following prerequisites must be met:
 
-### Application-Level Rate Limiting
+1. **Scan and sequencer APIs are audited and hardened.** (see *API Security*)
+2. **Traffic-based onboarding is in place.** (see *Traffic-based Validator Onboarding*).
+3. **Rate limiting and DoS protection is enforced.** (see *Rate Limiting and DoS Protection*).
+4. For MainNet and TestNet: **Testing period on DevNet has passed** (see *Rollout Plan*)
+
+### API Security
+
+Audits of the APIs that will be exposed to the public will be performed to ensure that they are not vulnerable to abuse or denial-of-service attacks.
+Audit results will be made available to supervalidators and other key network stakeholders.
+
+### Traffic-based Validator Onboarding
+
+#### Onboarding Flow
+
+The existing validator onboarding model relies on a single sponsor SV to unilaterally onboard a new validator by generating an onboarding secret. This CIP replaces the sponsor model with a decentralized flow.
+
+Instead of secrets, new validator onboarding is now driven by traffic purchases. The high-level onboarding flow works as follows:
+
+- A prospective validator operator spins up their validator node to generate their cryptographic keys and obtain a unique participant ID.
+
+- An existing party on the network holding Canton coins purchases traffic for that new participant ID.
+
+- This traffic purchase automatically triggers the permissioning process, allowing the validator to connect to the global synchronizer.
+
+Concretely, when the `MemberTraffic` contract is created with sufficient traffic (as publicly defined on ledger), SV automation observes this contract and automatically submits a `ParticipantSynchronizerPermission` topology transaction for the validator's participant ID. Once confirmed by a majority of SVs, the validator's connection is accepted.
+
+In the event that SVs detect network abuse by a validator, SVs can collectively decide to offboard the offending validator. To handle validator offboarding, SVs use a new `ValidatorUnpermission` contract to vote on revoking a validator's synchronizer access. `ValidatorUnpermission` contract supports two modes of revocation:
+
+- Temporary: Suspend the validator's access until a specific time by setting the `loginAfter` parameter on the `ParticipantSynchronizerPermission`.
+- Permanent: Fully revoke the `ParticipantSynchronizerPermission` topology state.
+
+If a validator is permanently unpermissioned, it can be repermissioned at a later time. SVs must vote to issue a new `ParticipantSynchronizerPermission`.
+
+#### Network Transition
+
+In order for traffic-based onboarding to offer effective protection, each network must undergo a coordinated, 3-step transition process driven by supervalidator operators:
+
+1. Switch to the new onboarding flow: The network enables the new traffic-based onboarding automation. The legacy secret-based sponsor SV onboarding flow no longer works, so new validators wishing to join the network may be required to use a sufficiently recent version of Splice.
+2. Topology submission: SV operators set the `submitSynchronizerPermission: true` feature flag on the SV application. This triggers a one-time decentralized automation to submit `ParticipantSynchronizerPermission` topology transactions for all existing validators that hold a valid `MemberTraffic` contract with sufficient traffic.
+3. Network switchover: Once the topology submission is complete, SV operators set the `requireRestrictedOpen: true` feature flag. This automatically converts the network to `RestrictedOpen` mode.
+
+Once the network switches over (step 3), existing validators whose total past traffic purchases are below the minimum traffic requirement lose access to the synchronizer.
+Access can be restored by purchasing sufficient traffic to meet the traffic requirement (defined on ledger and made public via Scan).
+
+#### Easy Onboarding to DevNet
+
+On DevNet, `/v0/devnet/onboard/validator/purchase-traffic` endpoint on the SV application allows for automated self-onboarding. This endpoint uses test tokens to automatically generate `MemberTraffic` for joining validators. To prevent denial-of-service attacks on this free onboarding mechanism, aggressive IP-based rate limiting is applied to the `/v0/devnet/onboard/validator/purchase-traffic` (s.a. *Application-Level Rate Limiting*).
+
+#### Rollback
+
+In the event of unexpected issues with the new onboarding mode, rolling back the network back to `UnrestrictedOpen` requires manual coordination among Super Validator operators. The SVs must coordinate to manually switch back to `UnrestrictedOpen` in the `DynamicSynchronizerParameters`.
+
+### Rate Limiting and DoS Protection
+
+In order to safely remove the IP whitelisting requirement for the public endpoints of Scan and the sequencers on *any* network, the following prerequisites must be met for that network
+
+1. **Application-level rate limiting is enforced** (see *Application-Level Rate Limiting*).
+2. **Infrastructure-level rate limiting and DDoS protection are enforced** (see *Infrastructure Requirements*).
+3. **Verification has passed** (see *Verification*).
+
+#### Application-Level Rate Limiting
 
 **The Global Synchronizer's Canton Coin Scan app must provide:**
 
@@ -42,7 +108,6 @@ The focus is on removing the IP whitelisting for the public endpoints of Scan an
 - The same type of limits per source IP to avoid a single client consuming all the global allowance.
 - The same type of limits, configurable per OpenAPI operation, allowing for more restrictive rate limits for certain operations.
 - Bounded per-IP-address-range overrides, so that a known high-volume consumer can be granted a higher limit without being exempted from limiting.
-
 
 **The sequencer must provide:**
 
@@ -52,7 +117,7 @@ The focus is on removing the IP whitelisting for the public endpoints of Scan an
 
 **Configuration.** The limit *values* for Scan and the sequencer must be maintained in the shared, version-controlled configuration repository and applied by all SVs, so that limits are identical across SVs and tunable network-wide without needing a new release. 
 
-### Infrastructure Requirements
+#### Infrastructure Requirements
 
 In front of its public endpoints, every SV must operate:
 
@@ -64,12 +129,7 @@ In front of its public endpoints, every SV must operate:
 
 These requirements will be documented more in depth in the public documentation available to the SVs. 
 
-### Scope
-
-The removal of the whitelists applies only to the validator-facing public endpoints of Scan and the sequencers. 
-No changes are made to the non-public endpoints (endpoints accessible only on the SVs internal network), or to the whitelists that handle traffic that occurs only between SV nodes.
-
-### Verification
+#### Verification
 
 A sanity-check tool will be provided to supervalidators to verify that the preconditions for whitelist removal are met. It will check that:
 
@@ -77,31 +137,60 @@ A sanity-check tool will be provided to supervalidators to verify that the preco
 - throttled requests receive the expected response;
 - client IPs are correctly identified and limited, even when forwarded through a trusted proxy;
 
-#### Audit
+Supervalidators are encouraged to test both their and their peers's setups prior to the removal of the whitelisting requirement.
 
-An internal audit of the APIs that will be exposed to the public will be performed to ensure that they are not vulnerable to abuse or denial-of-service attacks.
+### Rollout Plan
+
+The whitelisting requirements can be dropped on a network once all prerequisites above are fulfilled for that network,
+most notably once the network has transitioned to traffic-based onboarding and all supervalidators have made the necessary adjustments to their deployments to support effective rate limiting.
+
+Additionally, the whitelist requirement should only be dropped on TestNet and MainNet after a testing period of DevNet of at least 4 weeks.
+More specifically, we the opening schedule should be no more condensed than:
+
+- Week 0: Whitelist requirement dropped on DevNet
+- Week 4: Whitelist requirement dropped on TestNet
+- Week 6: Whitelist requirement dropped on MainNet
 
 ## Motivation
 
-The goal is a public network, where a validator can join and reach Scan and the sequencers on its own, without going through a whitelisting process.
-The Scan APIs are public and any client interested in consuming the data should be able to do so without a central approval step. 
+### A Public Network
+
+A decentralized network must be public and open, and the participation should not require manual, off-ledger gatekeeping like IP whitelisting. This CIP ensures anyone can join the network seamlessly based on protocol-level rules (`MemberTraffic`) rather than manual administrative approval.
+
+### Governance
+
+The existing secret-based onboarding model makes a single sponsor SV unilaterally responsible for admitting a new validator. This CIP ensures that onboarding and offboarding validators is a decentralized process.
+
+### Operational Overhead
+
+The manual generation of onboarding secrets by a sponsor SV is a time-consuming process that does not scale as the network expands. 
+Furthermore, maintaining static IP whitelists creates a significant operational bottleneck, severely delaying the speed at which new validators can join the network.
 
 ## Rationale
 
-With a traffic-based onboarding gate in place, the IP whitelist is no longer needed to have control over the participants that can connect to the synchronizer (the traffic-based onboarding gate has no impact on Scan). 
-The rate limiting and DDoS protection provide a bound on resource consumption and protect against denial-of-service attacks, so that the network can remain available even when under load. 
+- With a traffic-based onboarding gate in place, the IP whitelist is no longer needed to have control over the participants that can connect to the synchronizer (the traffic-based onboarding gate has no impact on Scan).
+
+- The rate limiting and DDoS protection provide a bound on resource consumption and protect against denial-of-service attacks, so that the network can remain available even when under load. 
+
+- Why Canton 3.X: This version supports the `RestrictedOpen` synchronizer state and the `ParticipantSynchronizerPermission` topology transaction required to make sequencers public.
+
+- Why `MemberTraffic`: To prevent attackers from misusing the global synchronizer, joining the network must have a cost. Since validators already purchase `MemberTraffic` to transact, we reuse this existing financial requirement as the economic barrier to entry rather than inventing a new mechanism.
 
 ## Backwards Compatibility
 
-No compatibilty concerns. 
+- Once a network initiates the transition to traffic-based onboarding, new validators wishing to join the network may be required to use a sufficiently recent version of Splice to be able to onboard.
+- Once a network completes the transition to traffic-based onboarding, existing validators that do not hold a valid `MemberTraffic` contract with minimal required traffic will experience synchronizer downtime until sufficient traffic is purchased for their participant ID.
 
 ## Reference Implementation
 
-- Splice implements HTTP rate limiting for its apps, providing global, per-IP, and per-OpenAPI-operation limits with configurable windows, burst allowances, and a bounded LRU cache of tracked addresses. Outstanding for this CIP: per-IP-address-range overrides, and sourcing the limit values from the shared configuration repository.
-- The sequencer implements per-endpoint concurrency caps and per-member/global traffic limits. Outstanding: global and per-IP request-rate limits on the critical endpoint subset, and propagation of the real client address as gRPC metadata.
-- Infrastructure-level global and per-IP rate limiting, ban thresholds, and DDoS protection are implemented in the reference deployment tooling, together with alerting on the rate-limit metrics.
-- The verification tool is to be delivered alongside the enforcement rollout.
+- An advanced reference implementation for traffic-based onboarding is available at: https://github.com/canton-network/splice/tree/feature-public-sequencer-and-scan
+- Advanced reference implementations for both application-level and infrastructure-level rate limiting are available on Splice `main`: https://github.com/canton-network/splice/
 
 ## Copyright
 
 This CIP is licensed under [CC0-1.0: Creative Commons CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
+
+## Changelog
+
+- 2026-XX-XX: Approved
+- 2026-XX-XX: Initial draft v1 (based on merging two previous CIP drafts)
