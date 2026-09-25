@@ -81,7 +81,7 @@ SVs may vote to issue a new `ParticipantSynchronizerPermission`.
 
 In order for traffic-based onboarding to offer effective protection, each network must undergo a coordinated, 3-step transition process driven by SV operators:
 
-1. Switch to the new onboarding flow: The network enables the new traffic-based onboarding automation. The legacy secret-based sponsor SV onboarding flow no longer works, so new validators wishing to join the network may be required to use a sufficiently recent version of Splice.
+1. Switch to the new onboarding flow: The network enables the new traffic-based onboarding automation. The legacy secret-based sponsor SV onboarding flow no longer works, so new validators wishing to join the network may be required to use a sufficiently recent version of Splice. (Note that the new onboarding flow already *works* - new validators can onboard to the synchronizer even before steps 2 and 3 have been completed.)
 2. Topology submission: SV operators set the `submitSynchronizerPermission: true` feature flag on the SV application. This triggers a one-time decentralized automation to submit `ParticipantSynchronizerPermission` topology transactions for all existing validators that hold a valid `MemberTraffic` contract with sufficient traffic.
 3. Network switchover: Once the topology submission is complete, SV operators set the `requireRestrictedOpen: true` feature flag. This automatically converts the network to `RestrictedOpen` mode.
 
@@ -97,7 +97,7 @@ Any existing party that holds sufficient Canton Coin may perform this purchase o
 For example, dedicated services may emerge that offer traffic purchases in exchange for fiat currency payments.
 
 To enable regular wallet users to purchase traffic for new validators, traffic purchases will be supported through token standard v1 compatibility mode:
-SV automation will be extended so that a transfer to a special address of the form `cip-<xxx>_traffic-purchase::1220...abcd` with an appropriately formatted memo tag referencing a participant ID will have the same outcome (CC is burnt, and an on-ledger record of that burn is created) as the current traffic purchase Daml choice for the referenced participant ID.
+SV automation will be extended so that a transfer to a special address of the form `cip-<xxx>_traffic-purchase::1220...abcd` with an appropriately formatted memo tag referencing a participant ID will have the same effective outcome for the referenced participant ID as burning Canton Coin directly for purchasing traffic (via `AmuletRules_BuyMemberTraffic`).
 
 To make it easier to deploy validators on DevNet, SVs will expose a new DevNet-only endpoint: `/v0/devnet/onboard/validator/purchase-traffic`.
 This endpoint uses an SV's own (DevNet) coin holdings to generate `MemberTraffic` for joining validators.
@@ -141,7 +141,7 @@ In front of its public endpoints, every SV must operate as part of their ingress
 
 The specific requirements will be documented in depth in the public documentation available to the SVs.
 
-Like for the application-level rate limiting, universal aspects of the rate limiting configuration will be maintained in a shared, version-controlled configuration repository available to all SVs.
+Like for the application-level rate limiting, core rate limiting parameters (requests per minute, ...) will be maintained in a shared, version-controlled configuration repository available to all SVs.
 SV operators must ensure that their individual deployment systems can parse and apply the shared configuration.
 *All* SVs *must* adopt the agreed upon rate limiting configuration in a timely fashion and *may not* override rate limits with individual settings or exceptions (to ensure fairness and consistent quality of service).
 
