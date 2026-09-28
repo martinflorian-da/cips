@@ -103,7 +103,7 @@ For more details see the reference implementation of this feature at: https://gi
 
 To make it easier to deploy validators on DevNet, SVs will expose a new DevNet-only endpoint: `/v0/devnet/onboard/validator/purchase-traffic`.
 This endpoint uses an SV's own (DevNet) coin holdings to generate `MemberTraffic` for joining validators.
-To prevent denial-of-service attacks on this free (DevNet-only) onboarding mechanism, aggressive IP-based rate limiting is applied to the new endpoint.
+To prevent denial-of-service attacks on this free (DevNet-only) onboarding mechanism, aggressive IP-based rate limiting is applied to the new endpoint (via application-level rate limiting, see below).
 
 ### Rate Limiting and DoS Protection
 
@@ -131,7 +131,7 @@ The sequencer must provide:
 - Concurrency caps on expensive endpoints. (Some sequencer endpoints invoke long-running operations, making it difficult to manage their overhead via rate limits alone.)
 
 The limit values for Scan and the sequencer must be maintained in a shared, version-controlled configuration repository and applied by all SVs, so that limits are identical across SVs and tunable network-wide without needing a new release.
-*All* SVs *must* adopt the agreed upon rate limiting configuration in a timely fashion and *may not* override rate limits with individual settings or exceptions (to ensure fairness and consistent quality of service).
+SVs must adopt changes to the agreed upon rate limiting configuration in a timely fashion.
 
 #### Infrastructure Requirements
 
@@ -148,13 +148,13 @@ The specific requirements will be documented in depth in the public documentatio
 
 Like for the application-level rate limiting, core rate limiting parameters (requests per minute, ...) will be maintained in a shared, version-controlled configuration repository available to all SVs.
 SV operators must ensure that their individual deployment systems can parse and apply the shared configuration.
-*All* SVs *must* adopt the agreed upon rate limiting configuration in a timely fashion and *may not* override rate limits with individual settings or exceptions (to ensure fairness and consistent quality of service).
+SVs must adopt changes to the agreed upon rate limiting configuration in a timely fashion.
 
 #### Verification
 
 A sanity-check tool will be provided to SVs to verify that the preconditions for whitelist removal are met. It will check that:
 
-- the configured global, per-IP, and per-operation limits are in effect and match the network configuration;
+- the configured global and per-IP limits are in effect and match the network configuration;
 - throttled requests receive the expected response;
 - client IPs are correctly identified and limited, even when forwarded through a trusted proxy;
 
