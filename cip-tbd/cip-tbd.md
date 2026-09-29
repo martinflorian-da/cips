@@ -1,8 +1,8 @@
 # CIP-01XY
 
 <pre>
-Number: CIP-01XY
-Title: Remove IP Whitelists from the Global Synchronizer
+Number: CIP-TBD
+Title: Remove IP Whitelists from the Global Synchronizer - Martin Florian
 Author(s):
   Martin Florian
   Nicu Reut
@@ -96,7 +96,7 @@ Any existing party that holds sufficient Canton Coin may perform this purchase o
 For example, dedicated services may emerge that offer traffic purchases in exchange for fiat currency payments.
 
 Any individual that wants to operate a Validator may simply use a Canton Coin wallet to purchase the required traffic for their new Validator node (or for anyone else). To make this process as accessible as possible, traffic purchases will be supported through token standard v1 compatibility mode:
-The `ExternalPartyAmuletRules` will be extended so that a transfer to an address of the form `cip-<xxx>_traffic-purchase::1220...abcd` with an appropriately formatted memo tag `memberId=<member>&synchronizerId=<synchronizer>&migrationId=<int>&trafficAmount=<int>` will have the same effective outcome for the referenced member ID (typically a participant ID) as purchasing traffic via `AmuletRules_BuyMemberTraffic`.
+The `ExternalPartyAmuletRules` will be extended so that a transfer to an address of the form `cip-<tbd>_traffic-purchase::1220...abcd` with an appropriately formatted memo tag `memberId=<member>&synchronizerId=<synchronizer>&migrationId=<int>&trafficAmount=<int>` will have the same effective outcome for the referenced member ID (typically a participant ID) as purchasing traffic via `AmuletRules_BuyMemberTraffic`.
 For more details see the reference implementation of this feature at: https://github.com/canton-network/splice/pull/7427
 
 To make it easier to deploy validators on DevNet, SVs will also expose a new DevNet-only endpoint: `/v0/devnet/onboard/validator/purchase-traffic`.
