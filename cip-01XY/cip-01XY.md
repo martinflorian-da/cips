@@ -20,15 +20,14 @@ License: CC0-1.0
 
 Validator access to the Canton Network Global Synchronizer - specically, access to the Scan and sequencer APIs - has historically been capped. This allowed a reasonable rate of onboarding growth, and it also provided time for the Super Validators to test and optimize defenses against various attacks, and to optimize various tradeoffs in incentives and rewards. This cap was enforced via explicit IP whitelisting rules combined with onboarding secrets. New validators request access via a process coordinated by the Canton Foundation.
 
-Recently the Canton scaling team has confirmed that the network can accept a rate of Validator onboarding higher than current demand, and the Splice and Canton security teams have defined a Super Validator deployment configuration that will limit the impact of a wide variety of potential attacks both to the sequencer API during the Validator onboarding process, and to the Scan API. 
+Recently the Canton scaling team has confirmed that the network can accept a rate of Validator onboarding higher than current demand, and the Splice and Canton security teams have defined a Super Validator deployment configuration that will limit the impact of a wide variety of potential attacks both to the sequencer API and to the Scan API.
 
-Given these advances, this CIP proposes a streamlined, self-service onboarding process for Validators, so that Validators may join the network without any review or governance.  It also proposes making the Scan APIs accessible on the open internet. 
-
-
-This CIP proposes a new onboarding flow that grants synchronizer access automatically once a minimum amount of traffic has been purchased.
+Given these advances, this CIP proposes a streamlined, self-service onboarding process for Validators, so that Validators may join the network without any review or governance.
+Specifically, this CIP proposes a new onboarding flow that grants synchronizer access automatically once a minimum amount of traffic has been purchased.
 The traffic purchase requirement makes it costly for malicious actors to reconnect after getting blocked and effectively limits Sybil attacks.
 
-This CIP also requires Super Validators to enforce rate limits on applications operated by the Super Validators (Scan, Canton Coin fees and incentives, Canton Name Service and SV Governance), and on the infrastructure layer of Super Validator nodes.
+This CIP also proposes making the sequencer and Scan APIs accessible on the open Internet.
+To protect the network against abuse, this CIP requires Super Validators to enforce rate limits on applications operated by the Super Validators (most prominently Scan), and on the infrastructure layer of Super Validator nodes.
 
 ## Specification
 
@@ -129,6 +128,8 @@ Super Validators must also provide the following on their sequencer API endpoint
 - Global and per-IP request-rate limits (based on sequencer-local load, equivalent to the HTTP limits above).
 - Concurrency caps on expensive endpoints. (Some sequencer endpoints invoke long-running operations, making it difficult to manage their overhead via rate limits alone.)
 
+Where still necessary, Splice and Canton will be extended to support the above rate-limiting requirements.
+
 The limit values for Scan and the sequencer must be maintained in a shared, version-controlled configuration repository and applied by all SVs, so that limits are identical across SVs and tunable network-wide without requiring a Splice release.
 SVs must adopt changes to the agreed upon rate limiting configuration in a timely fashion.
 
@@ -182,7 +183,7 @@ Though simple and open, this onboarding process still has required Foundation co
 
 ### Governance
 
-The existing secret-based onboarding model requires one of the Super Validators -- typically the Foundation -- to issue a onboarding secret for each new Validator. This CIP removes that task, making Validator onboarding and offboarding an automated, decentralized process.
+The existing secret-based onboarding model requires one of the Super Validators - typically the Foundation - to issue a onboarding secret for each new Validator. This CIP removes that task, making Validator onboarding and offboarding an automated, decentralized process.
 
 
 ## Rationale
