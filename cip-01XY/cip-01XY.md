@@ -18,25 +18,24 @@ License: CC0-1.0
 
 ## Abstract
 
-Validator access to the Global Synchronizer - i.e., access to Scan and sequencer APIs - is currently restricted by explicit IP whitelisting rules: connecting new validators to the network requires requesting access in a process coordinated by the Canton Foundation.
-Additionally, an established Super Validator (SV) must explicitly "sponsor" each new validator onboarding via manually issuing an onboarding secret.
+Validator access to the Canton Network Global Synchronizer - specically, access to the Scan and sequencer APIs - has historically been capped. This allowed a reasonable rate of onboarding growth, and it also provided time for the Super Validators to test and optimize defenses against various attacks, and to optimize various tradeoffs in incentives and rewards. This cap was enforced via explicit IP whitelisting rules combined with onboarding secrets. New validators request access via a process coordinated by the Canton Foundation.
 
-This CIP proposes the removal of IP whitelisting requirements as well as changes to the validator onboarding process so that new validators can join the network in a self-service way.
+Recently the Canton scaling team has confirmed that the network can accept a rate of Validator onboarding higher than current demand, and the Splice and Canton security teams have defined a Super Validator deployment configuration that will limit the impact of a wide variety of potential attacks both to the sequencer API during the Validator onboarding process, and to the Scan API. 
 
-The whitelisting requirement cannot simply be dropped: it currently protects the network from malicious actors and excessive load.
-For example, the whitelisting requirement makes it straightforward to exclude and block nodes that have been identified as malicious.
+Given these advances, this CIP proposes a streamlined, self-service onboarding process for Validators, so that Validators may join the network without any review or governance.  It also proposes making the Scan APIs accessible on the open internet. 
+
 
 This CIP proposes a new onboarding flow that grants synchronizer access automatically once a minimum amount of traffic has been purchased.
 The traffic purchase requirement makes it costly for malicious actors to reconnect after getting blocked and effectively limits Sybil attacks.
 
-This CIP furthermore makes "dropping the whitelist" conditional on the enforcement of rate limits on both the application and (SV) infrastructure layers.
+This CIP also requires Super Validators to enforce rate limits on applications operated by the Super Validators (Scan, Canton Coin fees and incentives, Canton Name Service and SV Governance), and on the infrastructure layer of Super Validator nodes.
 
 ## Specification
 
 ### Overview and Scope
 
-This CIP focuses on removing the whitelist requirement for the validator-facing public endpoints of Scan and the sequencers.
-No changes are made to the access requirements for endpoints that are only used by other SVs as well as any access requirements enforced by individual SVs and validators for their operators and users.
+This CIP calls for removing the whitelist requirement for public endpoints provided by Super Validators: the Scan API and sequencer APIs. 
+No changes are made to the access requirements for endpoints that are only used by other SVs, and no changes are made to access restrictions enforced by individual SVs and validators on their node operators and users.
 
 In order to safely remove the IP whitelisting requirement for the public endpoints of Scan and the sequencers, the following prerequisites must be met:
 
@@ -64,7 +63,7 @@ Instead of secrets, new validator onboarding is now driven by traffic purchases.
 
 - This traffic purchase automatically triggers the onboarding process, allowing the validator to connect to the Global Synchronizer.
 
-Concretely, when the `MemberTraffic` contract is created with sufficient traffic (as publicly defined on ledger), SV automation observes this contract and automatically submits a `ParticipantSynchronizerPermission` topology transaction for the validator's participant ID. Once confirmed by a majority of SVs, the validator's connection is accepted.
+Concretely, when the `MemberTraffic` contract is created with sufficient traffic (as publicly defined on ledger), SV automation observes this contract and automatically submits a `ParticipantSynchronizerPermission` topology transaction for the validator's participant ID. Once confirmed (automatically) by a majority of SVs, the validator's connection is accepted.
 
 "Sufficient traffic" here refers to the *total traffic purchased*, not the current traffic balance.
 The specific minimum amount will be configurable via an on-ledger governance vote.
@@ -85,7 +84,7 @@ SVs may vote to issue a new `ParticipantSynchronizerPermission`.
 In order for traffic-based onboarding to offer effective protection, each network must undergo a 3-step transition process initiated by an on-chain vote:
 
 1. SVs vote to initiate the switch to traffic-based onboarding. The vote has effective time T1 and commits to a switch over at time T2, i.e., `DsoRulesConfig.svOperationsSwitchOverTimes[trafficBasedOnboarding]=T2`.
-2. Between T1 and T2, SVs automatically submit `ParticipantSynchronizerPermission` topology transactions for all SVs and all existing validators that hold a valid `MemberTraffic` contract with sufficient traffic.
+2. Between T1 and T2, SVs automatically submit `ParticipantSynchronizerPermission` topology transactions for all SVs and all existing validators that hold a valid `MemberTraffic` contract with sufficient *total traffic purchased*.
 3. At time T2, the network automatically switches over to `RestrictedOpen` mode.
 
 Once the network switches over (step 3), existing validators whose total past traffic purchases is below the minimum traffic requirement lose access to the synchronizer.
@@ -97,11 +96,11 @@ In order for a new validator to onboard, an existing party on the network must p
 Any existing party that holds sufficient Canton Coin may perform this purchase on behalf of the new validator.
 For example, dedicated services may emerge that offer traffic purchases in exchange for fiat currency payments.
 
-To enable regular wallet users to purchase traffic for new validators, traffic purchases will be supported through token standard v1 compatibility mode:
+Any individual that wants to operate a Validator may simply use a Canton Coin wallet to purchase the required traffic for their new Validator node (or for anyone else). To make this process as accessible as possible, traffic purchases will be supported through token standard v1 compatibility mode:
 The `ExternalPartyAmuletRules` will be extended so that a transfer to an address of the form `cip-<xxx>_traffic-purchase::1220...abcd` with an appropriately formatted memo tag `memberId=<member>&synchronizerId=<synchronizer>&migrationId=<int>&trafficAmount=<int>` will have the same effective outcome for the referenced member ID (typically a participant ID) as purchasing traffic via `AmuletRules_BuyMemberTraffic`.
 For more details see the reference implementation of this feature at: https://github.com/canton-network/splice/pull/7427
 
-To make it easier to deploy validators on DevNet, SVs will expose a new DevNet-only endpoint: `/v0/devnet/onboard/validator/purchase-traffic`.
+To make it easier to deploy validators on DevNet, SVs will also expose a new DevNet-only endpoint: `/v0/devnet/onboard/validator/purchase-traffic`.
 This endpoint uses an SV's own (DevNet) coin holdings to generate `MemberTraffic` for joining validators.
 To prevent denial-of-service attacks on this free (DevNet-only) onboarding mechanism, aggressive IP-based rate limiting is applied to the new endpoint (via application-level rate limiting, see below).
 
@@ -109,7 +108,7 @@ To prevent denial-of-service attacks on this free (DevNet-only) onboarding mecha
 
 In order to safely remove the IP whitelisting requirement for the public endpoints of Scan and the sequencers on a given network,
 effective rate limiting and DoS protection must be in place for that network.
-All of the following prerequisites must be met:
+All of the following prerequisites must be met by each Super Validator:
 
 1. Application-level rate limiting is enforced (see *Application-Level Rate Limiting*).
 2. Infrastructure-level rate limiting and DDoS protection are enforced (see *Infrastructure Requirements*).
@@ -117,20 +116,20 @@ All of the following prerequisites must be met:
 
 #### Application-Level Rate Limiting
 
-The Global Synchronizer's Canton Coin Scan app must provide:
+Super Validators operating the Global Synchronizer's Canton Coin Scan app must provide:
 
 - Global limits: a maximum number of requests per configurable window (default 60s), plus a short-window burst allowance (default 1s).
 - The same type of limits per source IP to avoid a single client consuming all the global allowance.
 - Global and per source IP limits configurable per endpoint (more specifically, per operation defined in the OpenAPI spec), allowing for more restrictive rate limits for certain operations.
 - Bounded per-IP-address-range overrides, so that a known high-volume consumer can be granted a higher limit without being exempted from limiting.
 
-The sequencer must provide:
+Super Validators must also provide the following on their sequencer API endpoints: 
 
 - Per-member and global transaction limits (based on synchronizer-wide load; also known as "sequencer caps").
 - Global and per-IP request-rate limits (based on sequencer-local load, equivalent to the HTTP limits above).
 - Concurrency caps on expensive endpoints. (Some sequencer endpoints invoke long-running operations, making it difficult to manage their overhead via rate limits alone.)
 
-The limit values for Scan and the sequencer must be maintained in a shared, version-controlled configuration repository and applied by all SVs, so that limits are identical across SVs and tunable network-wide without needing a new release.
+The limit values for Scan and the sequencer must be maintained in a shared, version-controlled configuration repository and applied by all SVs, so that limits are identical across SVs and tunable network-wide without requiring a Splice release.
 SVs must adopt changes to the agreed upon rate limiting configuration in a timely fashion.
 
 #### Infrastructure Requirements
@@ -163,10 +162,10 @@ All tests involving higher loads (to effectively test rate limits) should be coo
 
 ### Rollout Plan
 
-The whitelisting requirements can be dropped on a network once all prerequisites above are fulfilled for that network,
+Whitelisting requirements and Validator onboarding reviews can be dropped on a network once all prerequisites above are fulfilled for that network,
 most notably once the network has transitioned to traffic-based onboarding and all SVs have made the necessary adjustments to their deployments to support effective rate limiting.
 
-Additionally, the whitelist requirement should only be dropped on TestNet and MainNet after a testing period on DevNet of at least 4 weeks.
+Additionally, the requirements for whitelisting and onboarding reviews should only be dropped on TestNet and MainNet after a testing period on DevNet of at least 4 weeks.
 More specifically, the opening schedule should be no more condensed than:
 
 - Week 0: Whitelist requirement dropped on DevNet
@@ -177,22 +176,20 @@ More specifically, the opening schedule should be no more condensed than:
 
 ### A Public Network
 
-A decentralized network must be public and open, and the participation should not require manual, off-ledger gatekeeping like IP whitelisting. This CIP ensures anyone can join the network seamlessly based on protocol-level rules rather than manual administrative approval.
+Canton is a public network. The network onboards any operator that follows a simple request and review process that has been designed to manage network growth in a responsible manner, and provide ways to protect the network from directed attacks. 
+
+Though simple and open, this onboarding process still has required Foundation committees to review the rate of Validator onboarding, and it has required Super Validators to maintain complex IP whitelisting rules. This CIP removes these administrative costs.
 
 ### Governance
 
-The existing secret-based onboarding model makes a single sponsor SV responsible for admitting a new validator. This CIP ensures that onboarding and offboarding validators is a decentralized process.
+The existing secret-based onboarding model requires one of the Super Validators -- typically the Foundation -- to issue a onboarding secret for each new Validator. This CIP removes that task, making Validator onboarding and offboarding an automated, decentralized process.
 
-### Operational Overhead
-
-The manual generation of onboarding secrets by a sponsor SV is a time-consuming process that does not scale as the network expands.
-Furthermore, maintaining static IP whitelists creates a significant operational bottleneck, severely delaying the speed at which new validators can join the network.
 
 ## Rationale
 
-- To prevent attackers from misusing the Global Synchronizer, joining the network must have a cost. Since validators already purchase `MemberTraffic` to transact, we reuse this existing financial requirement as the economic barrier to entry rather than inventing a new mechanism.
+- To prevent attackers from misusing the Global Synchronizer, joining the network must have a cost. Since validators already purchase `MemberTraffic` to transact, we reuse this existing financial requirement as the economic requirement for entry, rather than proposing a new mechanism.
 
-- With a traffic-based onboarding gate in place, the IP whitelist is no longer needed to have control over the participants that can connect to the synchronizer (the traffic-based onboarding gate has no impact on Scan).
+- With a traffic-based onboarding gate in place, the IP whitelist is no longer necessary to protect against malicious "spam" node onboarding attacks.
 
 - The rate limiting and DDoS protection provide a bound on resource consumption and protect against denial-of-service attacks, so that the network can remain available even when under load.
 
