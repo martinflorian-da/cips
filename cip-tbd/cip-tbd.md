@@ -83,11 +83,11 @@ SVs may vote to issue a new `ParticipantSynchronizerPermission`.
 In order for traffic-based onboarding to offer effective protection, each network must undergo a 3-step transition process initiated by an on-chain vote:
 
 1. SVs vote to initiate the switch to traffic-based onboarding. The vote has effective time T1 and commits to a switch over at time T2, i.e., `DsoRulesConfig.svOperationsSwitchOverTimes[trafficBasedOnboarding]=T2`.
-2. Between T1 and T2, SVs automatically submit `ParticipantSynchronizerPermission` topology transactions for all SVs and all existing Validators that hold a valid `MemberTraffic` contract with sufficient *total traffic purchased*.
+2. Between T1 and T2, SVs automatically submit `ParticipantSynchronizerPermission` topology transactions for all SVs and all *existing* Validators.
 3. At time T2, the network automatically switches over to `RestrictedOpen` mode.
 
-Once the network switches over (step 3), existing Validators whose total past traffic purchases is below the minimum traffic requirement lose access to the synchronizer.
-Access can be restored by purchasing sufficient traffic (via an active validator) to meet the traffic requirement (defined on ledger and made public via Scan).
+Once the network switches over (step 3), *new* Validators wishing to onboard must purchase sufficient traffic in order to be able to connect.
+*Existing* Validators may continue to operate independently of their current `MemberTraffic` state, preserving backwards compatibility.
 
 #### Easier Traffic Purchases
 
@@ -197,7 +197,6 @@ The existing secret-based onboarding model requires one of the Super Validators 
 ## Backwards Compatibility
 
 - Once a network initiates the transition to traffic-based onboarding, new Validators wishing to join the network may be required to use a sufficiently recent version of Splice to be able to onboard.
-- Once a network completes the transition to traffic-based onboarding, existing Validators that haven't purchased sufficient traffic (in total, over their whole lifetime, as per the state recorded in `MemberTraffic` contacts) to cover the minimal required traffic requirement will experience synchronizer downtime until sufficient traffic is purchased (via an active validator) for their participant ID.
 
 ## Reference Implementation
 
