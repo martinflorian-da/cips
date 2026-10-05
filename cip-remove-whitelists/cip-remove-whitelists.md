@@ -54,9 +54,7 @@ Audit results will be made available to SVs and other key network stakeholders.
 On a high level, the new Validator onboarding flow works as follows:
 
 - A prospective Validator operator spins up their Validator node to generate their cryptographic keys and obtain a unique *member ID*.
-
 - An existing party on the network purchases traffic for that new Validator's member ID (using Canton Coin; see also *Easier Traffic Purchases* below).
-
 - This traffic purchase automatically triggers the onboarding process, allowing the Validator to connect to the Global Synchronizer.
 
 Concretely, when the `MemberTraffic` contract is created with sufficient traffic (as publicly defined on ledger), the SVs, in a decentralized and Byzantine-fault-tolerant (BFT) manner, observe this contract and automatically submit a `ParticipantSynchronizerPermission` topology transaction for the Validator's ID. Once a BFT quorum amongst the SVs is reached, the Validator's connection is accepted.
