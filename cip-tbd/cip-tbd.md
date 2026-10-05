@@ -142,7 +142,7 @@ In front of its public endpoints, every SV must implement as part of its ingress
 - Alerting on proximity to, and breach of, the configured limits, based on the metrics exposed by the rate-limiting layer.
 - Correct client identification: the ingress layer must correctly set client IPs in HTTP headers before forwarding to backends, to allow reliable application-level per-IP rate limiting.
 
-A more detailed version of these requirements must be included in the public SV documentation.
+A more detailed version of these requirements must be included in the public Super Validator documentation.
 
 #### Verification
 
