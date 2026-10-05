@@ -10,8 +10,7 @@ Author(s):
   Moritz Kiefer
 Type: Standards Track
 Status: Draft
-Created: 2026-xx-xx
-Approved: 2026-xx-xx
+Created: 2026-10-05
 License: CC0-1.0
 </pre>
 
@@ -38,7 +37,7 @@ No changes are made to the access requirements for endpoints that are only used 
 
 In order to safely remove the IP whitelisting requirement for the public endpoints of Scan and the sequencers, the following prerequisites must be met:
 
-1. Scan and sequencer APIs are audited and hardened (see *API Security*)
+1. Scan and sequencer APIs are audited and hardened (see *API Security*).
 2. Traffic-based onboarding is in place (see *Traffic-based Validator Onboarding*).
 3. Rate limiting and DoS protection are enforced (see *Rate Limiting and DoS Protection*).
 4. For MainNet and TestNet: Testing period on DevNet has passed (see *Rollout Plan*).
@@ -92,7 +91,7 @@ In order for a new Validator to onboard, an existing party on the network must p
 Any existing party that holds sufficient Canton Coin may perform this purchase on behalf of the new Validator.
 For example, dedicated services may emerge that offer traffic purchases in exchange for fiat currency payments.
 
-Any individual who wants to operate a Validator may simply use a Canton Coin wallet to purchase the required traffic for their new Validator node (or for anyone else). To make this process as accessible as possible, traffic purchases will be supported through token standard v1 compatibility mode (compatible with token standard v2):
+Any individual who wants to operate a Validator may simply use a Canton Coin wallet to purchase the required traffic for their new Validator node (or for anyone else). To make this process as accessible as possible, traffic purchases will be supported through token standard v1 compatibility mode (compatible also with token standard v2):
 The `ExternalPartyAmuletRules` will be extended so that a transfer to an address of the form `cip-<tbd>_traffic-purchase::1220...abcd` with an appropriately formatted memo tag `memberId=<member>&synchronizerId=<synchronizer>&migrationId=<int>&trafficAmount=<int>` will have the same effective outcome for the referenced member ID as purchasing traffic via `AmuletRules_BuyMemberTraffic`.
 For more details see the reference implementation of this feature at: https://github.com/canton-network/splice/pull/7427
 
@@ -187,5 +186,4 @@ This CIP is licensed under [CC0-1.0: Creative Commons CC0 1.0 Universal](https:/
 
 ## Changelog
 
-- 2026-XX-XX: Approved
-- 2026-XX-XX: Initial draft v1 (based on merging two previous CIP drafts)
+- 2026-10-05: First public draft
