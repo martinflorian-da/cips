@@ -18,16 +18,16 @@ License: CC0-1.0
 
 ## Abstract
 
+This CIP proposes a streamlined, self-service onboarding process for Validators, so that Validators may join the network without any review or governance.
+
 Validator access to the Canton Network Global Synchronizer - specifically, access to the Scan and sequencer APIs - has historically been capped. This allowed a reasonable rate of onboarding growth, and it also provided time for the Super Validators to test and optimize defenses against various attacks, and to optimize various tradeoffs in incentives and rewards. This cap was enforced via explicit IP whitelisting rules combined with onboarding secrets. New Validators request access via a process coordinated by the Canton Foundation.
 
 Recently the Canton scaling team has confirmed that the network can accept a rate of Validator onboarding higher than current demand, and the Splice and Canton security teams have defined a Super Validator deployment configuration that will limit the impact of a wide variety of potential attacks both to the sequencer API and to the Scan API.
 
-Given these advances, this CIP proposes a streamlined, self-service onboarding process for Validators, so that Validators may join the network without any review or governance.
-Specifically, this CIP proposes a new onboarding flow that grants synchronizer access automatically once a minimum amount of traffic has been purchased.
-The traffic purchase requirement makes it costly for malicious actors to reconnect after getting blocked and effectively limits Sybil attacks.
+Given these advances, this CIP proposes:
 
-This CIP also proposes making the sequencer and Scan APIs accessible on the open Internet.
-To protect the network against abuse, this CIP requires Super Validators to enforce rate limits on applications operated by the Super Validators (most prominently Scan), and on the infrastructure layer of Super Validator nodes.
+- A new Validator onboarding flow that grants synchronizer access automatically once a minimum amount of traffic has been purchased. The traffic purchase requirement makes it costly for malicious actors to reconnect after getting blocked and effectively limits Sybil attacks.
+- Making the sequencer and Scan APIs accessible on the open Internet. To protect the network against abuse, this CIP requires Super Validators to enforce rate limits on applications operated by the Super Validators (most prominently Scan), and on the infrastructure layer of Super Validator nodes.
 
 ## Specification
 
