@@ -1,8 +1,8 @@
-# CIP-TBD
+# Remove IP Whitelists from the Global Synchronizer - Martin Florian
 
 <pre>
 Number: CIP-TBD
-Title: Remove IP Whitelists from the Global Synchronizer - Martin Florian
+Title: Remove IP Whitelists from the Global Synchronizer
 Author(s):
   Martin Florian
   Nicu Reut
