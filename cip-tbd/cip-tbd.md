@@ -106,20 +106,24 @@ In order to safely remove the IP whitelisting requirement for the public endpoin
 effective rate limiting and DoS protection must be in place for that network.
 All of the following prerequisites must be met by each Super Validator:
 
-1. Application-level rate limiting is enforced (see *Application-Level Rate Limiting*).
-2. Infrastructure-level rate limiting and DDoS protection are enforced (see *Infrastructure Requirements*).
+1. Consistent application-level rate limiting is enforced (see *Application-Level Rate Limiting*).
+2. Consistent infrastructure-level rate limiting and DDoS protection are enforced (see *Infrastructure Requirements*).
 3. Verification has passed (see *Verification*).
+
+All rate limits must be enforced *consistently across SVs*, to ensure the security of the Global Synchronizer as well as a consistent user experience for clients.
+Rate limit configurations must be maintained in a shared, version-controlled configuration repository and applied by all SVs, so that the specific limits are identical across SVs while remaining adjustable in a swift manner.
+SVs must adopt changes to the agreed upon rate limiting configuration in a timely fashion.
 
 #### Application-Level Rate Limiting
 
-Super Validators operating the Global Synchronizer's Canton Coin Scan app must provide:
+Super Validators operating the Global Synchronizer's Canton Coin Scan app must adopt, based on the shared configuration repository:
 
 - Global limits: a maximum number of requests per configurable window (default 60s), plus a short-window burst allowance (default 1s).
 - The same type of limits per source IP to avoid a single client consuming all the global allowance.
 - Global and per source IP limits configurable per endpoint (more specifically, per operation defined in the OpenAPI spec), allowing for more restrictive rate limits for certain operations.
 - Bounded per-IP-address-range overrides, so that a known high-volume consumer can be granted a higher limit without being exempted from limiting.
 
-Super Validators must also provide the following on their sequencer API endpoints:
+Super Validators must also provide the following on their sequencer API endpoints, based on the shared configuration repository:
 
 - Per-member and global transaction limits (based on synchronizer-wide load; also known as "sequencer caps").
 - Global and per-IP request-rate limits (based on sequencer-local load, equivalent to the HTTP limits above).
@@ -127,25 +131,18 @@ Super Validators must also provide the following on their sequencer API endpoint
 
 Where still necessary, Splice and Canton will be extended to support the above rate-limiting requirements.
 
-The limit values for Scan and the sequencer must be maintained in a shared, version-controlled configuration repository and applied by all SVs, so that limits are identical across SVs and tunable network-wide without requiring a Splice release.
-SVs must adopt changes to the agreed upon rate limiting configuration in a timely fashion.
-
 #### Infrastructure Requirements
 
 In front of its public endpoints, every SV must implement as part of their ingress setup:
 
-- Global rate limiting across all Scan and all sequencer endpoints.
-- Global per-source-IP rate limiting across the same endpoints.
+- Global rate limiting across all Scan and all sequencer endpoints, parameterized by the shared configuration repository.
+- Global per-source-IP rate limiting across the same endpoints, parameterized by the shared configuration repository.
 - DDoS protection (for example a cloud provider's network-layer DDoS protection or an equivalent service).
 - The ability to add a temporary limit or block per path and/or IP address range, as an incident-response measure.
 - Alerting on proximity to, and breach of, the configured limits, based on the metrics exposed by the rate-limiting layer.
 - Correct client identification: the ingress layer must correctly set client IPs in HTTP headers before forwarding to backends, to allow reliable application-level per-IP rate limiting.
 
-The specific requirements will be documented in depth in the public documentation available to the SVs.
-
-Like for the application-level rate limiting, core rate limiting parameters (requests per minute, ...) will be maintained in a shared, version-controlled configuration repository available to all SVs.
-SV operators must ensure that their individual deployment systems can parse and apply the shared configuration.
-SVs must adopt changes to the agreed upon rate limiting configuration in a timely fashion.
+A more detailed version of these requirements must be included into the public SV documentation.
 
 #### Verification
 
