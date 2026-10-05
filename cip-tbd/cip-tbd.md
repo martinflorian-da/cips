@@ -18,7 +18,7 @@ License: CC0-1.0
 
 ## Abstract
 
-Validator access to the Canton Network Global Synchronizer - specically, access to the Scan and sequencer APIs - has historically been capped. This allowed a reasonable rate of onboarding growth, and it also provided time for the Super Validators to test and optimize defenses against various attacks, and to optimize various tradeoffs in incentives and rewards. This cap was enforced via explicit IP whitelisting rules combined with onboarding secrets. New Validators request access via a process coordinated by the Canton Foundation.
+Validator access to the Canton Network Global Synchronizer - specifically, access to the Scan and sequencer APIs - has historically been capped. This allowed a reasonable rate of onboarding growth, and it also provided time for the Super Validators to test and optimize defenses against various attacks, and to optimize various tradeoffs in incentives and rewards. This cap was enforced via explicit IP whitelisting rules combined with onboarding secrets. New Validators request access via a process coordinated by the Canton Foundation.
 
 Recently the Canton scaling team has confirmed that the network can accept a rate of Validator onboarding higher than current demand, and the Splice and Canton security teams have defined a Super Validator deployment configuration that will limit the impact of a wide variety of potential attacks both to the sequencer API and to the Scan API.
 
@@ -54,7 +54,7 @@ Audit results will be made available to SVs and other key network stakeholders.
 
 The existing Validator onboarding model relies on a single sponsor SV to unilaterally onboard a new Validator by generating an onboarding secret. This CIP replaces the sponsor model with a decentralized flow.
 
-Instead of secrets, new Validator onboarding is now driven by traffic purchases. The high-level onboarding flow works as follows:
+The new Validator onboarding is now driven by traffic purchases. The high-level onboarding flow works as follows:
 
 - A prospective Validator operator spins up their Validator node to generate their cryptographic keys and obtain a unique *participant ID*.
 
@@ -188,7 +188,7 @@ The existing secret-based onboarding model requires one of the Super Validators 
 
 ## Rationale
 
-- To prevent attackers from misusing the Global Synchronizer, joining the network must have a cost. Since Validators already purchase `MemberTraffic` to transact, we reuse this existing financial requirement as the economic requirement for entry, rather than proposing a new mechanism.
+- To avoid spamming the Global Synchronizer with Validator nodes, joining the network must have a cost. Since Validators already purchase `MemberTraffic` to transact, we reuse this existing financial requirement as the economic requirement for entry, rather than proposing a new mechanism.
 
 - With a traffic-based onboarding gate in place, the IP whitelist is no longer necessary to protect against malicious "spam" node onboarding attacks.
 
