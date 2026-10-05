@@ -62,7 +62,7 @@ The new Validator onboarding is now driven by traffic purchases. The high-level 
 
 - This traffic purchase automatically triggers the onboarding process, allowing the Validator to connect to the Global Synchronizer.
 
-Concretely, when the `MemberTraffic` contract is created with sufficient traffic (as publicly defined on ledger), SV automation observes this contract and automatically submits a `ParticipantSynchronizerPermission` topology transaction for the validator's participant ID. Once confirmed (automatically) by a majority of SVs, the validator's connection is accepted.
+Concretely, when the `MemberTraffic` contract is created with sufficient traffic (as publicly defined on ledger), the SVs decentrally and with byzantine fault tolerance observe this contract and automatically submit a `ParticipantSynchronizerPermission` topology transaction for the validator's validator ID. Once BFT quorum amongst the SVs is reached, the validator's connection is accepted.
 
 "Sufficient traffic" here refers to the *total traffic purchased*, not the current traffic balance.
 The specific minimum amount will be configurable via an on-ledger governance vote.
