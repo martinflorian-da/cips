@@ -1,4 +1,4 @@
-# CIP-TBD: Remove IP Whitelists from the Global Synchronizer - Martin Florian
+# CIP-0128: Remove IP Whitelists from the Global Synchronizer - Martin Florian
 
 <pre>
 Number: CIP-TBD
